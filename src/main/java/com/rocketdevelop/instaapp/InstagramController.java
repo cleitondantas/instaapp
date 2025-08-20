@@ -4,12 +4,14 @@ import com.fasterxml.jackson.databind.JsonNode;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.view.RedirectView;
 
 @RestController
 @RequestMapping("/instagram")
 public class InstagramController {
 
     private final InstagramService instagramService;
+    private String token= null;
 
     public InstagramController(InstagramService instagramService) {
         this.instagramService = instagramService;
@@ -21,17 +23,18 @@ public class InstagramController {
 
 
     @GetMapping("/auth")
-    public ResponseEntity<?> auth() {
-        String response = instagramService.getAuthUrl();
-
-        return ResponseEntity.status(HttpStatus.PERMANENT_REDIRECT).body(response);
+    public RedirectView auth() {
+        System.out.println("Redirecting to Instagram authorization URL");
+        String authUrl = instagramService.getAuthUrl();
+        return new RedirectView(authUrl);
     }
 
     @GetMapping("/callback")
-    public String callback(@RequestParam String code) {
+    public RedirectView callback(@RequestParam String code) {
         String shortToken = instagramService.exchangeShortLivedToken(code);
         String longToken = instagramService.exchangeLongLivedToken(shortToken);
-        return "Long-lived token: " + longToken;
+        System.out.println("Long-lived token: " + longToken);
+        return new RedirectView("https://28c0ae96528b.ngrok-free.app/instagram/");
     }
 
     @GetMapping("/medias")
